@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palgener — Acas</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0e0c0a;color:#e8ddd0;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+
+header{display:flex;align-items:center;padding:16px 24px;border-bottom:1px solid #1e1b17;gap:14px}
+.logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;letter-spacing:5px;background:linear-gradient(135deg,#D4AF50,#C9A882);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:9px;letter-spacing:3px;color:#3a3630;text-transform:uppercase;margin-top:3px}
+
+.page{display:grid;grid-template-columns:310px 1fr;min-height:calc(100vh - 57px)}
+
+/* ── IZQUIERDA ── */
+.left{border-right:1px solid #1e1b17;padding:18px 16px;display:flex;flex-direction:column;gap:18px;overflow-y:auto}
+.lbl{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#3a3630;margin-bottom:8px}
+
+.wheel-box{display:flex;flex-direction:column;align-items:center;gap:8px}
+#wheel{border-radius:50%;cursor:crosshair;touch-action:none;display:block;box-shadow:0 0 32px rgba(0,0,0,.7)}
+.hint{font-size:10px;color:#3a3630;text-align:center}
+
+.sliders{display:flex;flex-direction:column;gap:8px}
+.sr{display:flex;align-items:center;gap:8px}
+.sr label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#3a3630;width:68px;flex-shrink:0}
+.sr input[type=range]{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:#1e1b17;outline:none;cursor:pointer}
+.sr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#D4AF50;cursor:pointer}
+.sv{font-size:10px;color:#5a5248;width:24px;text-align:right}
+
+.pal-head{display:flex;align-items:center;justify-content:space-between}
+.slots{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.slot{width:44px;height:44px;border-radius:50%;border:2px dashed #2a2620;position:relative;flex-shrink:0;transition:transform .2s}
+.slot.on{border-style:solid;border-color:rgba(255,255,255,.1);cursor:pointer}
+.slot.on:hover{transform:scale(1.1)}
+.slot .x{display:none;position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:#0e0c0a;border:1px solid #2a2620;border-radius:50%;font-size:9px;align-items:center;justify-content:center;color:#e8ddd0;cursor:pointer;z-index:2}
+.slot.on:hover .x{display:flex}
+.slot .hx{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);font-size:8px;color:#3a3630;white-space:nowrap;font-family:monospace}
+.strip{height:7px;border-radius:4px;overflow:hidden;display:flex;gap:1px;margin-top:30px}
+.strip div{flex:1}
+
+.btn-clear{padding:5px 10px;border-radius:6px;border:1px solid #2a2620;background:transparent;color:#3a3630;font-size:10px;cursor:pointer;transition:all .2s}
+.btn-clear:hover{border-color:#A0522D;color:#A0522D}
+
+.stg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.sb{padding:8px 2px;border-radius:8px;border:1px solid #2a2620;background:transparent;color:#5a5248;font-size:9px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.sb .ic{font-size:15px}
+.sb:hover{border-color:#D4AF50;color:#D4AF50}
+.sb.on{background:linear-gradient(135deg,#D4AF50,#C9A882);color:#0e0c0a;border-color:transparent;font-weight:600}
+
+.btn-gen{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF50,#A0522D);color:#0e0c0a;font-family:'Playfair Display',serif;font-size:16px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .25s;margin-top:auto}
+.btn-gen:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,175,80,.3)}
+.btn-gen:active{transform:translateY(0)}
+
+/* ── DERECHA ── */
+.right{padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.wrap{width:100%;max-width:540px;aspect-ratio:1;border-radius:18px;border:1px solid #1e1b17;background:#141210;overflow:hidden;position:relative;transition:box-shadow .4s}
+.wrap.glow{box-shadow:0 0 60px rgba(212,175,80,.15),0 0 120px rgba(160,82,45,.07)}
+#out{width:100%;height:100%;display:block}
+
+.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#2a2620}
+.ei{font-size:60px}.et{font-size:11px;letter-spacing:2px;text-transform:uppercase}
+
+.acts{display:flex;gap:8px;opacity:0;transition:opacity .3s;flex-wrap:wrap;justify-content:center}
+.acts.on{opacity:1}
+.ab{padding:9px 16px;border-radius:8px;border:1px solid #2a2620;background:#141210;color:#5a5248;font-size:11px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.ab:hover{border-color:#D4AF50;color:#D4AF50}
+
+.desc{max-width:540px;width:100%;padding:12px 16px;background:#141210;border:1px solid #1e1b17;border-left:3px solid #D4AF50;border-radius:0 8px 8px 0;font-size:12px;font-style:italic;line-height:1.6;color:#5a5248;display:none}
+.desc.on{display:block}
+
+@media(max-width:680px){
+  .page{grid-template-columns:1fr}
+  .left{border-right:none;border-bottom:1px solid #1e1b17}
+  .wrap{max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">PALGENER</div>
+    <div class="sub">Paleta · Arte Generativo · Acas</div>
+  </div>
+</header>
+
+<div class="page">
+  <div class="left">
+
+    <div>
+      <div class="lbl">① Círculo cromático — toca para capturar</div>
+      <div class="wheel-box">
+        <canvas id="wheel" width="220" height="220"></canvas>
+        <div class="hint">Toca el círculo → el color se agrega a tu paleta</div>
+      </div>
+    </div>
+
+    <div class="sliders">
+      <div class="sr">
+        <label>Brillo</label>
+        <input type="range" id="sl-b" min="20" max="95" value="65" oninput="dibujarRueda()">
+        <span class="sv" id="vb">65</span>
+      </div>
+      <div class="sr">
+        <label>Saturación</label>
+        <input type="range" id="sl-s" min="20" max="100" value="85" oninput="dibujarRueda()">
+        <span class="sv" id="vs">85</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="pal-head">
+        <div class="lbl" style="margin-bottom:0">② Tu paleta (hasta 6)</div>
+        <button class="btn-clear" onclick="limpiar()">✕ Limpiar</button>
+      </div>
+      <div class="slots" id="slots"></div>
+      <div class="strip" id="strip"></div>
+    </div>
+
+    <div>
+      <div class="lbl">③ Estilo de imagen</div>
+      <div class="stg">
+        <button class="sb on" data-s="floral"       onclick="setS(this)"><span class="ic">🌸</span>Floral</button>
+        <button class="sb"    data-s="animal"       onclick="setS(this)"><span class="ic">🦋</span>Animal</button>
+        <button class="sb"    data-s="moderno"      onclick="setS(this)"><span class="ic">◈</span>Moderno</button>
+        <button class="sb"    data-s="vintage"      onclick="setS(this)"><span class="ic">✦</span>Vintage</button>
+        <button class="sb"    data-s="lujoso"       onclick="setS(this)"><span class="ic">◆</span>Lujoso</button>
+        <button class="sb"    data-s="geometrico"   onclick="setS(this)"><span class="ic">▲</span>Geomét.</button>
+        <button class="sb"    data-s="ejecutivo"    onclick="setS(this)"><span class="ic">◻</span>Ejecutivo</button>
+        <button class="sb"    data-s="viajero"      onclick="setS(this)"><span class="ic">✈</span>Viajero</button>
+        <button class="sb"    data-s="tradicional"  onclick="setS(this)"><span class="ic">❧</span>Tradicio.</button>
+        <button class="sb"    data-s="citadino"     onclick="setS(this)"><span class="ic">⬡</span>Citadino</button>
+      </div>
+    </div>
+
+    <button class="btn-gen" onclick="generar()">✦ GENERAR ARTE</button>
+  </div>
+
+  <div class="right">
+    <div class="wrap" id="wrap">
+      <div class="empty" id="empty">
+        <div class="ei">◈</div>
+        <div class="et">Elige colores y genera</div>
+      </div>
+      <svg id="out" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="acts" id="acts">
+      <button class="ab" onclick="generar()">↺ Nueva variación</button>
+      <button class="ab" onclick="descargar()">↓ Descargar SVG</button>
+      <button class="ab" onclick="copiar()">⎘ Copiar SVG</button>
+    </div>
+    <div class="desc" id="desc"></div>
+  </div>
+</div>
+
+<script>
+// ══ ESTADO ══
+let paleta=[];
+let estilo='floral';
+let svgGuardado='';
+let seed=1;
+
+// ══ RUEDA ══
+const cv=document.getElementById('wheel');
+const cx=cv.getContext('2d');
+const W=cv.width,CX=W/2,CY=W/2,R=W/2-3;
+
+function dibujarRueda(){
+  const B=parseInt(document.getElementById('sl-b').value);
+  const S=parseInt(document.getElementById('sl-s').value);
+  document.getElementById('vb').textContent=B;
+  document.getElementById('vs').textContent=S;
+  cx.clearRect(0,0,W,W);
+  for(let a=0;a<360;a++){
+    const ang=(a-90)*Math.PI/180;
+    const angN=(a-89)*Math.PI/180;
+    const gr=cx.createRadialGradient(CX,CY,0,CX,CY,R);
+    gr.addColorStop(0,`hsl(${a},0%,${B}%)`);
+    gr.addColorStop(0.45,`hsl(${a},${S}%,${Math.round(B*.85)}%)`);
+    gr.addColorStop(1,`hsl(${a},${S}%,${Math.max(B-40,8)}%)`);
+    cx.beginPath();cx.moveTo(CX,CY);cx.arc(CX,CY,R,ang,angN);cx.closePath();
+    cx.fillStyle=gr;cx.fill();
+  }
+  cx.beginPath();cx.arc(CX,CY,R,0,Math.PI*2);
+  cx.strokeStyle='rgba(255,255,255,0.05)';cx.lineWidth=2;cx.stroke();
+  cx.beginPath();cx.arc(CX,CY,7,0,Math.PI*2);
+  cx.fillStyle=`hsl(0,0%,${B}%)`;cx.fill();
+}
+
+function capturarColor(e){
+  const rect=cv.getBoundingClientRect();
+  const sx=W/rect.width,sy=W/rect.height;
+  let px,py;
+  if(e.touches){px=(e.touches[0].clientX-rect.left)*sx;py=(e.touches[0].clientY-rect.top)*sy;}
+  else{px=(e.clientX-rect.left)*sx;py=(e.clientY-rect.top)*sy;}
+  const dx=px-CX,dy=py-CY;
+  if(Math.sqrt(dx*dx+dy*dy)>R)return;
+  const p=cx.getImageData(Math.round(px),Math.round(py),1,1).data;
+  if(p[3]<10)return;
+  const hex=rgb2hex(p[0],p[1],p[2]);
+  addColor(hex);
+}
+cv.addEventListener('click',capturarColor);
+cv.addEventListener('touchstart',e=>{e.preventDefault();capturarColor(e);},{passive:false});
+
+// ══ PALETA ══
+function addColor(hex){
+  if(paleta.length>=6)return;
+  for(const c of paleta){if(colorDist(c,hex)<15)return;}
+  paleta.push(hex);
+  renderSlots();renderStrip();
+}
+function removeColor(i){paleta.splice(i,1);renderSlots();renderStrip();}
+function limpiar(){paleta=[];renderSlots();renderStrip();}
+
+function renderSlots(){
+  const el=document.getElementById('slots');el.innerHTML='';
+  for(let i=0;i<6;i++){
+    const d=document.createElement('div');
+    d.className='slot'+(i<paleta.length?' on':'');
+    if(i<paleta.length){
+      d.style.background=paleta[i];
+      d.style.borderColor=paleta[i]+'88';
+      const x=document.createElement('div');x.className='x';x.textContent='×';
+      const idx=i;x.onclick=()=>removeColor(idx);d.appendChild(x);
+      const h=document.createElement('div');h.className='hx';h.textContent=paleta[i];d.appendChild(h);
+    }
+    el.appendChild(d);
+  }
+}
+function renderStrip(){
+  const s=document.getElementById('strip');s.innerHTML='';
+  paleta.forEach(c=>{const d=document.createElement('div');d.style.background=c;s.appendChild(d);});
+}
+function setS(btn){
+  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');estilo=btn.dataset.s;
+}
+
+// ══ UTILIDADES ══
+function rgb2hex(r,g,b){return'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');}
+function hex2rgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function colorDist(a,b){const[r1,g1,b1]=hex2rgb(a),[r2,g2,b2]=hex2rgb(b);return Math.sqrt((r1-r2)**2+(g1-g2)**2+(b1-b2)**2)/4.4;}
+function rngReset(s){seed=s;}
+function rng(){seed=(seed*1664525+1013904223)&0xffffffff;return Math.abs(seed)/2147483648;}
+function rngR(a,b){return a+rng()*(b-a);}
+function rngI(a,b){return Math.floor(rngR(a,b+1));}
+function rngC(arr){return arr[Math.floor(rng()*arr.length)];}
+function padP(p){const r=[...p];while(r.length<6)r.push(p[rngI(0,p.length-1)]);return r;}
+function hex6(x,y,r){const pts=[];for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2-Math.PI/6;pts.push(`${x+Math.cos(a)*r},${y+Math.sin(a)*r}`);}return pts.join(' ');}
+
+// ══ GENERADORES ══
+const GEN={
+
+floral(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="${c6}"/><stop offset="100%" stop-color="${c1}"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>`;
+  // Fondo difuso
+  [[80,80,100],[520,90,80],[90,510,85],[510,510,90],[300,80,60],[80,300,55],[520,300,58]].forEach(([fx,fy,fr],i)=>{
+    s+=`<circle cx="${fx}" cy="${fy}" r="${fr}" fill="${p[i%p.length]}" opacity=".12" filter="url(#soft)"/>`;
+  });
+  // Flores grandes
+  const flores=[{x:300,y:300,r:100,n:9},{x:120,y:120,r:60,n:7},{x:480,y:130,r:55,n:6},{x:130,y:470,r:52,n:7},{x:475,y:470,r:58,n:8},{x:300,y:490,r:42,n:6},{x:490,y:300,r:40,n:5},{x:100,y:300,r:38,n:6}];
+  flores.forEach((f,i)=>{
+    const col=p[i%p.length],col2=p[(i+2)%p.length],col3=p[(i+4)%p.length];
+    // pétalos exteriores
+    for(let k=0;k<f.n;k++){
+      const a=(k/f.n)*Math.PI*2+(i*.3);
+      const px=f.x+Math.cos(a)*f.r,py=f.y+Math.sin(a)*f.r;
+      s+=`<ellipse cx="${px}" cy="${py}" rx="${f.r*.38}" ry="${f.r*.58}" fill="${col}" opacity="${.5+rng()*.35}" transform="rotate(${(a*180/Math.PI)+90},${px},${py})"/>`;
+    }
+    // pétalos interiores
+    for(let k=0;k<f.n;k++){
+      const a=(k/f.n)*Math.PI*2+(i*.3)+Math.PI/f.n;
+      const px=f.x+Math.cos(a)*f.r*.6,py=f.y+Math.sin(a)*f.r*.6;
+      s+=`<ellipse cx="${px}" cy="${py}" rx="${f.r*.25}" ry="${f.r*.4}" fill="${col3}" opacity="${.4+rng()*.3}" transform="rotate(${(a*180/Math.PI)+90},${px},${py})"/>`;
+    }
+    s+=`<circle cx="${f.x}" cy="${f.y}" r="${f.r*.22}" fill="${col2}" opacity=".92"/>`;
+    s+=`<circle cx="${f.x}" cy="${f.y}" r="${f.r*.1}" fill="${col}" opacity=".95"/>`;
+  });
+  // Tallos curvos
+  for(let i=0;i<14;i++){
+    const x1=rngR(40,560),y1=rngR(40,560),len=rngR(35,90),a=rngR(0,Math.PI*2);
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x1+Math.cos(a)*len}" y2="${y1+Math.sin(a)*len}" stroke="${c5}" stroke-width="${rngR(1,2.5)}" opacity="${rngR(.25,.55)}" stroke-linecap="round"/>`;
+  }
+  // Puntitos de néctar
+  for(let i=0;i<30;i++){
+    s+=`<circle cx="${rngR(20,580)}" cy="${rngR(20,580)}" r="${rngR(1.5,4)}" fill="${rngC(p)}" opacity="${rngR(.2,.55)}"/>`;
+  }
+  s+=`<circle cx="300" cy="300" r="282" fill="none" stroke="${c3}" stroke-width=".8" opacity=".18"/>`;
+  return{svg:s,desc:'Jardín eterno floreciendo en colores de alma y luz'};
+},
+
+animal(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="80%">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>`;
+  // Fondo flora
+  for(let i=0;i<20;i++){
+    s+=`<circle cx="${rngR(10,590)}" cy="${rngR(10,590)}" r="${rngR(6,22)}" fill="${rngC(p)}" opacity="${rngR(.1,.25)}"/>`;
+  }
+  // Mariposa — alas superiores
+  s+=`<path d="M300,290 C300,290 220,170 160,180 C100,190 90,260 140,290 C190,320 280,300 300,290 Z" fill="${c3}" opacity=".85"/>`;
+  s+=`<path d="M300,290 C300,290 380,170 440,180 C500,190 510,260 460,290 C410,320 320,300 300,290 Z" fill="${c4}" opacity=".85"/>`;
+  // Alas inferiores
+  s+=`<path d="M300,300 C300,300 200,310 170,370 C140,430 180,470 230,450 C280,430 300,360 300,300 Z" fill="${c3}" opacity=".75"/>`;
+  s+=`<path d="M300,300 C300,300 400,310 430,370 C460,430 420,470 370,450 C320,430 300,360 300,300 Z" fill="${c4}" opacity=".75"/>`;
+  // Patrones en alas
+  [[230,230,18],[175,250,14],[370,230,18],[425,250,14],[220,330,12],[380,330,12],[250,200,10],[350,200,10]].forEach(([wx,wy,wr],i)=>{
+    s+=`<circle cx="${wx}" cy="${wy}" r="${wr}" fill="${p[i%p.length]}" opacity="${rngR(.4,.8)}"/>`;
+  });
+  // Cuerpo
+  s+=`<ellipse cx="300" cy="310" rx="7" ry="55" fill="${c6}" opacity=".92"/>`;
+  s+=`<ellipse cx="300" cy="260" rx="8" ry="18" fill="${c6}" opacity=".85"/>`;
+  // Cabeza
+  s+=`<circle cx="300" cy="242" r="12" fill="${c6}" opacity=".88"/>`;
+  // Antenas
+  s+=`<path d="M296,232 Q270,195 258,178" stroke="${c6}" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M304,232 Q330,195 342,178" stroke="${c6}" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="258" cy="178" r="5" fill="${c3}"/>
+      <circle cx="342" cy="178" r="5" fill="${c4}"/>`;
+  // Ojos
+  s+=`<circle cx="296" cy="241" r="3" fill="${c3}"/><circle cx="304" cy="241" r="3" fill="${c3}"/>`;
+  // Brillo
+  s+=`<ellipse cx="300" cy="295" rx="140" ry="100" fill="none" stroke="${c5}" stroke-width=".8" opacity=".2" filter="url(#glow)"/>`;
+  return{svg:s,desc:'Mariposa de colores vivos desplegando sus alas al sol'};
+},
+
+moderno(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${c2}"/><stop offset="100%" stop-color="${c1}"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>`;
+  // Composición Mondrian evolucionada
+  const bloques=[
+    {x:0,y:0,w:220,h:180,c:c3,o:.75},{x:230,y:0,w:170,h:100,c:c4,o:.7},{x:410,y:0,w:190,h:160,c:c6,o:.65},
+    {x:0,y:190,w:100,h:220,c:c6,o:.7},{x:110,y:190,w:300,h:130,c:c5,o:.45},{x:420,y:170,w:180,h:220,c:c3,o:.6},
+    {x:0,y:420,w:200,h:180,c:c4,o:.65},{x:210,y:330,w:190,h:270,c:c6,o:.55},{x:410,y:400,w:190,h:200,c:c3,o:.7},
+    {x:110,y:330,w:90,h:80,c:c5,o:.8},
+  ];
+  bloques.forEach(b=>s+=`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="${b.c}" opacity="${b.o}"/>`);
+  // Líneas negras Mondrian
+  [220,400,100,190,420,330].forEach((v,i)=>{
+    if(i<3) s+=`<line x1="${v}" y1="0" x2="${v}" y2="600" stroke="#0e0c0a" stroke-width="4" opacity=".6"/>`;
+    else s+=`<line x1="0" y1="${v}" x2="600" y2="${v}" stroke="#0e0c0a" stroke-width="4" opacity=".6"/>`;
+  });
+  // Círculo focal
+  s+=`<circle cx="300" cy="300" r="70" fill="${c5}" opacity=".14"/>
+      <circle cx="300" cy="300" r="36" fill="${c5}" opacity=".22"/>
+      <circle cx="300" cy="300" r="10" fill="${c3}" opacity=".95"/>`;
+  // Puntos decorativos
+  [[50,50],[550,50],[50,550],[550,550]].forEach(([ex,ey])=>{
+    s+=`<circle cx="${ex}" cy="${ey}" r="8" fill="${c3}" opacity=".7"/>`;
+  });
+  return{svg:s,desc:'Geometría audaz que habla el idioma del presente'};
+},
+
+vintage(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="${c1}" stop-opacity=".9"/>
+      <stop offset="70%" stop-color="${c2}" stop-opacity=".95"/>
+      <stop offset="100%" stop-color="${c6}"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feBlend in="SourceGraphic" mode="multiply"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <rect width="600" height="600" fill="${c6}" opacity=".07" filter="url(#grain)"/>`;
+  // Marcos concéntricos
+  [265,240,215,190,165].forEach((r,i)=>{
+    s+=`<rect x="${300-r}" y="${300-r}" width="${r*2}" height="${r*2}" fill="none" stroke="${p[i%p.length]}" stroke-width="${2.2-i*.3}" opacity="${.55-.1*i}" rx="3"/>`;
+  });
+  // Ornamentos esquinas
+  [[55,55],[545,55],[55,545],[545,545]].forEach(([ex,ey])=>{
+    s+=`<circle cx="${ex}" cy="${ey}" r="26" fill="none" stroke="${c3}" stroke-width="1.5" opacity=".55"/>
+        <circle cx="${ex}" cy="${ey}" r="16" fill="${c4}" opacity=".3"/>
+        <circle cx="${ex}" cy="${ey}" r="6" fill="${c3}" opacity=".75"/>`;
+    // Floritura
+    for(let k=0;k<4;k++){
+      const a=k*Math.PI/2,px=ex+Math.cos(a)*22,py=ey+Math.sin(a)*22;
+      s+=`<circle cx="${px}" cy="${py}" r="4" fill="${c5}" opacity=".4"/>`;
+    }
+  });
+  // Rosas vintage centrales
+  [[300,300,55],[160,160,32],[440,155,30],[155,440,28],[445,440,30]].forEach(([rx,ry,rr],i)=>{
+    for(let k=5;k>0;k--){
+      const pr=rr*(k/5);
+      for(let j=0;j<6;j++){
+        const a=(j/6)*Math.PI*2+(k*.2);
+        s+=`<circle cx="${rx+Math.cos(a)*pr*.55}" cy="${ry+Math.sin(a)*pr*.55}" r="${pr*.45}" fill="${p[(i+k)%p.length]}" opacity="${.25+k*.06}"/>`;
+      }
+    }
+    s+=`<circle cx="${rx}" cy="${ry}" r="${rr*.15}" fill="${c3}" opacity=".9"/>`;
+  });
+  // Línea borde exterior
+  s+=`<rect x="18" y="18" width="564" height="564" fill="none" stroke="${c5}" stroke-width=".8" opacity=".22"/>
+      <rect x="28" y="28" width="544" height="544" fill="none" stroke="${c4}" stroke-width=".5" opacity=".18"/>`;
+  return{svg:s,desc:'Memoria suave de tiempos dorados guardada en flores'};
+},
+
+lujoso(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="90%">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="60%" stop-color="${c2}"/><stop offset="100%" stop-color="${c6}"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${c3}"/><stop offset="50%" stop-color="${c5}"/><stop offset="100%" stop-color="${c3}"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow2"><feGaussianBlur stdDeviation="14" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>`;
+  // Destellos de lujo en fondo
+  for(let i=0;i<12;i++){
+    const r=rngR(140,290),a=rngR(0,Math.PI*2);
+    s+=`<circle cx="${300+Math.cos(a)*r}" cy="${300+Math.sin(a)*r}" r="${rngR(2,6)}" fill="${c3}" opacity="${rngR(.3,.8)}" filter="url(#glow)"/>`;
+  }
+  // Corona exterior de diamantes
+  for(let i=0;i<28;i++){
+    const a=(i/28)*Math.PI*2,r1=230,r2=272;
+    const x1=300+Math.cos(a)*r1,y1=300+Math.sin(a)*r1;
+    const x2=300+Math.cos(a)*r2,y2=300+Math.sin(a)*r2;
+    const xm=300+Math.cos(a+Math.PI/28)*(r1+r2)/2,ym=300+Math.sin(a+Math.PI/28)*(r1+r2)/2;
+    s+=`<polygon points="${x1},${y1} ${xm},${ym} ${x2},${y2}" fill="${rngC(p)}" opacity="${rngR(.6,.95)}"/>`;
+  }
+  // Anillos dorados
+  [205,178,152,125,100].forEach((r,i)=>{
+    s+=`<circle cx="300" cy="300" r="${r}" fill="none" stroke="url(#gold)" stroke-width="${3.2-i*.4}" opacity="${.75-.1*i}" ${i===0?'filter="url(#glow)"':''}/>`;
+  });
+  // Joya octogonal central
+  for(let i=0;i<8;i++){
+    const a=(i/8)*Math.PI*2;
+    s+=`<polygon points="300,300 ${300+Math.cos(a)*72},${300+Math.sin(a)*72} ${300+Math.cos(a+Math.PI/8)*55},${300+Math.sin(a+Math.PI/8)*55}" fill="${p[i%p.length]}" opacity=".88"/>`;
+  }
+  s+=`<circle cx="300" cy="300" r="26" fill="url(#gold)" filter="url(#glow2)"/>
+      <circle cx="300" cy="300" r="13" fill="${c5}" opacity=".96"/>
+      <circle cx="300" cy="300" r="5" fill="${c6}" opacity=".8"/>`;
+  // Cruz de destellos en cada esquina
+  [[60,60],[540,60],[60,540],[540,540]].forEach(([ex,ey])=>{
+    s+=`<line x1="${ex-10}" y1="${ey}" x2="${ex+10}" y2="${ey}" stroke="${c3}" stroke-width="1.5" opacity=".7" filter="url(#glow)"/>
+        <line x1="${ex}" y1="${ey-10}" x2="${ex}" y2="${ey+10}" stroke="${c3}" stroke-width="1.5" opacity=".7"/>`;
+  });
+  return{svg:s,desc:'Opulencia pura cristalizada en luz y geometría eterna'};
+},
+
+geometrico(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${c2}"/><stop offset="100%" stop-color="${c1}"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>`;
+  // Triángulo de Sierpinski
+  function tri(x,y,sz,d,ci){
+    if(sz<12||d===0){
+      s+=`<polygon points="${x},${y-sz} ${x-sz*.866},${y+sz*.5} ${x+sz*.866},${y+sz*.5}" fill="${p[ci%p.length]}" opacity="${.35+d*.09}"/>`;
+      return;
+    }
+    tri(x,y-sz/2,sz/2,d-1,(ci+1)%p.length);
+    tri(x-sz*.433,y+sz*.25,sz/2,d-1,(ci+2)%p.length);
+    tri(x+sz*.433,y+sz*.25,sz/2,d-1,(ci+3)%p.length);
+  }
+  tri(300,310,220,4,0);
+  // Hexágonos en bordes
+  for(let i=0;i<6;i++){
+    const a=(i/6)*Math.PI*2;
+    s+=`<polygon points="${hex6(300+Math.cos(a)*240,300+Math.sin(a)*240,30)}" fill="${p[i%p.length]}" opacity=".55"/>`;
+  }
+  // Cuadrícula de puntos
+  for(let x=30;x<600;x+=60){
+    for(let y=30;y<600;y+=60){
+      const dist=Math.sqrt((x-300)**2+(y-300)**2);
+      if(dist>220) s+=`<circle cx="${x}" cy="${y}" r="2" fill="${rngC(p)}" opacity="${rngR(.2,.5)}"/>`;
+    }
+  }
+  s+=`<circle cx="300" cy="300" r="284" fill="none" stroke="${c3}" stroke-width=".8" opacity=".25" stroke-dasharray="8 4"/>`;
+  return{svg:s,desc:'Fractales perfectos nacidos del orden matemático puro'};
+},
+
+ejecutivo(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c6}"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${c3}" stop-opacity="0"/>
+      <stop offset="50%" stop-color="${c3}"/>
+      <stop offset="100%" stop-color="${c3}" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>`;
+  // Red de cuadrícula
+  for(let i=1;i<12;i++){
+    s+=`<line x1="0" y1="${i*50}" x2="600" y2="${i*50}" stroke="${c5}" stroke-width=".4" opacity=".1"/>
+        <line x1="${i*50}" y1="0" x2="${i*50}" y2="600" stroke="${c5}" stroke-width=".4" opacity=".08"/>`;
+  }
+  // Barras de datos (gráfica de barras ejecutiva)
+  const barras=[{x:50,h:280,c:c4},{x:150,h:380,c:c3},{x:250,h:220,c:c4},{x:350,h:460,c:c3},{x:450,h:300,c:c4},{x:530,h:200,c:c6}];
+  barras.forEach((b,i)=>{
+    s+=`<rect x="${b.x-35}" y="${600-b.h}" width="70" height="${b.h}" fill="${b.c}" opacity=".6" rx="3"/>
+        <rect x="${b.x-35}" y="${600-b.h}" width="70" height="6" fill="${p[(i+1)%p.length]}" opacity=".9" rx="3"/>`;
+  });
+  // Línea de tendencia
+  const pts=barras.map(b=>`${b.x},${600-b.h}`).join(' ');
+  s+=`<polyline points="${pts}" fill="none" stroke="${c3}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>`;
+  // Puntos en la línea
+  barras.forEach(b=>{ s+=`<circle cx="${b.x}" cy="${600-b.h}" r="5" fill="${c3}" opacity=".9"/>`; });
+  // Franja de acento
+  [180,300,420].forEach(y=>{ s+=`<rect x="0" y="${y-1}" width="600" height="2" fill="url(#acc)" opacity=".4"/>`; });
+  // Escudo corporativo
+  s+=`<path d="M300,55 L355,80 L355,165 Q355,218 300,245 Q245,218 245,165 L245,80 Z" fill="${c3}" opacity=".14"/>
+      <path d="M300,72 L340,92 L340,163 Q340,208 300,230 Q260,208 260,163 L260,92 Z" fill="none" stroke="${c3}" stroke-width="1.5" opacity=".45"/>
+      <circle cx="300" cy="160" r="20" fill="${c3}" opacity=".6"/>`;
+  return{svg:s,desc:'Poder y visión proyectados en líneas de liderazgo'};
+},
+
+viajero(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="${c2}"/>
+      <stop offset="55%" stop-color="${c1}"/>
+      <stop offset="100%" stop-color="${c6}"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#sky)"/>`;
+  // Estrellas
+  for(let i=0;i<28;i++){
+    s+=`<circle cx="${rngR(10,590)}" cy="${rngR(5,200)}" r="${rngR(.8,2.8)}" fill="${c5}" opacity="${rngR(.4,.95)}"/>`;
+  }
+  // Luna
+  s+=`<circle cx="470" cy="100" r="44" fill="${c3}" opacity=".82"/>
+      <circle cx="487" cy="90" r="36" fill="${c1}" opacity=".75"/>`;
+  // Nubes
+  [[100,150],[220,120],[360,140],[500,165]].forEach(([nx,ny])=>{
+    for(let k=0;k<5;k++){
+      s+=`<ellipse cx="${nx+k*20}" cy="${ny+Math.sin(k)*12}" rx="${22-Math.abs(k-2)*4}" ry="14" fill="${c5}" opacity=".12"/>`;
+    }
+  });
+  // Montañas
+  [[60,430,200],[200,395,170],[320,415,185],[450,400,175],[570,440,150]].forEach(([mx,my,mw],i)=>{
+    s+=`<polygon points="${mx},${my} ${mx+mw/2},${my+120} ${mx-mw/2},${my+120}" fill="${p[i%p.length]}" opacity="${.5+i*.04}"/>`;
+    s+=`<polygon points="${mx},${my} ${mx+mw*.12},${my+mw*.08} ${mx-mw*.12},${my+mw*.08}" fill="${c5}" opacity=".35"/>`;
+  });
+  // Lago / reflejo
+  s+=`<ellipse cx="300" cy="535" rx="260" ry="55" fill="${c2}" opacity=".5"/>`;
+  // Brújula
+  s+=`<circle cx="300" cy="300" r="52" fill="${c6}" opacity=".88"/>
+      <circle cx="300" cy="300" r="49" fill="none" stroke="${c3}" stroke-width="1.5" opacity=".7"/>`;
+  ['N','E','S','W'].forEach((l,i)=>{
+    const a=(i/4)*Math.PI*2-Math.PI/2;
+    s+=`<text x="${300+Math.cos(a)*34}" y="${300+Math.sin(a)*34+4}" text-anchor="middle" font-size="10" fill="${c5}" font-family="serif" opacity=".85">${l}</text>
+        <line x1="${300+Math.cos(a)*20}" y1="${300+Math.sin(a)*20}" x2="${300+Math.cos(a)*42}" y2="${300+Math.sin(a)*42}" stroke="${c3}" stroke-width=".8" opacity=".5"/>`;
+  });
+  s+=`<polygon points="300,264 307,300 300,294 293,300" fill="${c4}" opacity=".95"/>
+      <polygon points="300,336 293,300 300,306 307,300" fill="${c5}" opacity=".75"/>`;
+  return{svg:s,desc:'Horizonte infinito llamando al alma que quiere partir'};
+},
+
+tradicional(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>`;
+  // Mandala de 5 capas
+  [{r:252,n:18,sz:16},{r:210,n:14,sz:19},{r:168,n:12,sz:18},{r:126,n:10,sz:16},{r:84,n:8,sz:14},{r:46,n:6,sz:12}].forEach((c,ci)=>{
+    for(let k=0;k<c.n;k++){
+      const a=(k/c.n)*Math.PI*2,col=p[(ci+k)%p.length];
+      const px=300+Math.cos(a)*c.r,py=300+Math.sin(a)*c.r;
+      // Pétalo
+      s+=`<ellipse cx="${px}" cy="${py}" rx="${c.sz*.52}" ry="${c.sz}" fill="${col}" opacity="${.55+ci*.07}" transform="rotate(${(a*180/Math.PI)+90},${px},${py})"/>`;
+      // Punto entre pétalos
+      const a2=a+Math.PI/c.n;
+      s+=`<circle cx="${300+Math.cos(a2)*c.r*.9}" cy="${300+Math.sin(a2)*c.r*.9}" r="${c.sz*.18}" fill="${p[(ci+3)%p.length]}" opacity=".45"/>`;
+    }
+    s+=`<circle cx="300" cy="300" r="${c.r}" fill="none" stroke="${p[ci%p.length]}" stroke-width=".6" opacity=".18"/>`;
+  });
+  // Centro
+  s+=`<circle cx="300" cy="300" r="28" fill="${c3}" opacity=".92"/>
+      <circle cx="300" cy="300" r="17" fill="${c5}" opacity=".95"/>
+      <circle cx="300" cy="300" r="7" fill="${c4}"/>`;
+  // Marco exterior doble
+  s+=`<rect x="16" y="16" width="568" height="568" fill="none" stroke="${c3}" stroke-width="1" opacity=".3" rx="10"/>
+      <rect x="9" y="9" width="582" height="582" fill="none" stroke="${c4}" stroke-width=".5" opacity=".18" rx="14"/>`;
+  // Esquinas ornamentales
+  [[30,30],[570,30],[30,570],[570,570]].forEach(([ex,ey])=>{
+    s+=`<circle cx="${ex}" cy="${ey}" r="10" fill="${c3}" opacity=".4"/>`;
+  });
+  return{svg:s,desc:'Mandala ancestral tejido con hilos de color y tiempo'};
+},
+
+citadino(p){
+  const[c1,c2,c3,c4,c5,c6]=p;
+  let s=`<defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="${c2}"/><stop offset="100%" stop-color="${c1}"/>
+    </linearGradient>
+    <linearGradient id="gnd" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="${c6}" stop-opacity=".95"/><stop offset="100%" stop-color="${c6}"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#sky)"/>`;
+  // Estrellas / luces
+  for(let i=0;i<25;i++){
+    s+=`<circle cx="${rngR(10,590)}" cy="${rngR(10,200)}" r="${rngR(.6,2)}" fill="${c5}" opacity="${rngR(.3,.9)}"/>`;
+  }
+  // Luna
+  s+=`<circle cx="490" cy="80" r="32" fill="${c3}" opacity=".7"/>`;
+  // Edificios (skyline)
+  const eds=[
+    {x:0,w:68,h:310},{x:58,w:52,h:420},{x:100,w:78,h:255},{x:168,w:62,h:480},
+    {x:220,w:88,h:350},{x:298,w:58,h:520},{x:346,w:72,h:390},{x:408,w:82,h:295},
+    {x:480,w:52,h:450},{x:522,w:78,h:280},
+  ];
+  eds.forEach((e,i)=>{
+    const ec=p[i%p.length];
+    s+=`<rect x="${e.x}" y="${600-e.h}" width="${e.w}" height="${e.h}" fill="${ec}" opacity="${.7+i*.02}"/>`;
+    // Antena
+    s+=`<line x1="${e.x+e.w/2}" y1="${600-e.h}" x2="${e.x+e.w/2}" y2="${600-e.h-18}" stroke="${c5}" stroke-width="1.5" opacity=".5"/>`;
+    // Ventanas
+    for(let r=0;r<Math.floor((e.h-20)/28);r++){
+      for(let c=0;c<Math.floor((e.w-10)/16);c++){
+        if(rng()>.42){
+          s+=`<rect x="${e.x+6+c*16}" y="${600-e.h+12+r*28}" width="8" height="12" fill="${rngC([c3,c5])}" opacity="${rngR(.5,.95)}"/>`;
+        }
+      }
+    }
+  });
+  // Suelo / reflejo
+  s+=`<rect x="0" y="552" width="600" height="48" fill="url(#gnd)"/>`;
+  // Reflejos de luz en suelo
+  for(let i=0;i<8;i++){
+    const rx=rngR(20,580);
+    s+=`<line x1="${rx}" y1="552" x2="${rx+rngR(-20,20)}" y2="600" stroke="${rngC(p)}" stroke-width="${rngR(2,5)}" opacity="${rngR(.15,.4)}"/>`;
+  }
+  return{svg:s,desc:'Ciudad que nunca duerme, latiendo en neón y color'};
+}
+
+}; // fin GEN
+
+// ══ GENERAR ══
+function generar(){
+  if(paleta.length===0){
+    // Demo con paleta del gato si no hay selección
+    paleta=['#C9A882','#8A8070','#D4AF50','#A0522D','#E8D5B8','#5C5448'];
+    renderSlots();renderStrip();
+  }
+  seed=Date.now()&0xFFFFFF;
+  rngReset(seed);
+  const p=padP(paleta);
+  const gen=GEN[estilo]||GEN.floral;
+  const{svg:inner,desc:descripcion}=gen(p);
+  document.getElementById('out').innerHTML=inner;
+  svgGuardado=inner;
+  document.getElementById('empty').style.display='none';
+  document.getElementById('wrap').classList.add('glow');
+  document.getElementById('acts').classList.add('on');
+  const d=document.getElementById('desc');
+  if(descripcion){d.textContent='✦ '+descripcion;d.classList.add('on');}
+}
+
+// ══ DESCARGAR / COPIAR ══
+function descargar(){
+  const full=`<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" width="600" height="600">\n${svgGuardado}\n</svg>`;
+  const blob=new Blob([full],{type:'image/svg+xml'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='palgener-arte.svg';a.click();
+  URL.revokeObjectURL(url);
+}
+function copiar(){
+  const full=`<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">\n${svgGuardado}\n</svg>`;
+  navigator.clipboard.writeText(full).then(()=>{
+    const b=event.currentTarget,t=b.textContent;
+    b.textContent='✓ Copiado';setTimeout(()=>b.textContent=t,2000);
+  });
+}
+
+// INIT
+dibujarRueda();renderSlots();
+</script>
+</body>
+</html>
