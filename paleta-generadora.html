@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paleta · Generadora de Arte — Acas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --c1: #C9A882;
+    --c2: #8A8070;
+    --c3: #D4AF50;
+    --c4: #A0522D;
+    --c5: #E8D5B8;
+    --c6: #5C5448;
+    --ui-bg: #141210;
+    --ui-panel: #1e1b17;
+    --ui-border: #2e2a24;
+    --ui-text: #e8ddd0;
+    --ui-muted: #7a706a;
+  }
+
+  body {
+    background: var(--ui-bg);
+    color: var(--ui-text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--ui-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--c3);
+  }
+  .logo-sub {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--ui-muted);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* MAIN LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: calc(100vh - 69px);
+  }
+
+  /* PANEL IZQUIERDO */
+  .panel {
+    background: var(--ui-panel);
+    border-right: 1px solid var(--ui-border);
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ui-muted);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--ui-border);
+  }
+
+  /* COLORES */
+  .colors-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .color-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .color-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--ui-muted);
+    text-transform: uppercase;
+  }
+
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .color-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+  }
+  .color-swatch:hover { transform: scale(1.1); box-shadow: 0 0 12px rgba(255,255,255,0.15); }
+
+  input[type="color"] {
+    position: absolute;
+    width: 0; height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .color-hex {
+    font-family: 'Inter', monospace;
+    font-size: 12px;
+    color: var(--ui-text);
+    background: transparent;
+    border: none;
+    width: 80px;
+    cursor: pointer;
+    outline: none;
+    letter-spacing: 0.5px;
+  }
+  .color-hex:focus {
+    color: var(--c3);
+    border-bottom: 1px solid var(--c3);
+  }
+
+  /* VISTA PREVIA */
+  .preview-strip {
+    display: flex;
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .preview-strip div {
+    flex: 1;
+    transition: background 0.3s;
+  }
+
+  /* ESTILOS DE IMAGEN */
+  .styles-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ui-muted);
+    margin-bottom: 10px;
+  }
+
+  .styles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .style-btn {
+    padding: 10px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--ui-border);
+    background: transparent;
+    color: var(--ui-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .style-btn:hover { border-color: var(--c3); color: var(--c3); }
+  .style-btn.active {
+    background: var(--c3);
+    color: #141210;
+    border-color: var(--c3);
+    font-weight: 600;
+  }
+
+  /* BOTÓN GENERAR */
+  .btn-generar {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--c3), var(--c4));
+    color: #141210;
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.25s;
+    margin-top: auto;
+  }
+  .btn-generar:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,80,0.35); }
+  .btn-generar:active { transform: translateY(0); }
+  .btn-generar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ÁREA PRINCIPAL */
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    position: relative;
+  }
+
+  /* CANVAS DE IMAGEN */
+  .canvas-wrap {
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    border: 1px solid var(--ui-border);
+    background: var(--ui-panel);
+    overflow: hidden;
+    position: relative;
+    transition: box-shadow 0.3s;
+  }
+  .canvas-wrap.glow {
+    box-shadow: 0 0 40px rgba(212,175,80,0.2);
+  }
+
+  #svg-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ESTADO VACÍO */
+  .empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--ui-muted);
+  }
+  .empty-icon {
+    font-size: 56px;
+    opacity: 0.3;
+  }
+  .empty-text {
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  /* LOADING */
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(20,18,16,0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    border-radius: 16px;
+    z-index: 10;
+  }
+  .loading-overlay.show { display: flex; }
+
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--ui-border);
+    border-top-color: var(--c3);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 13px;
+    color: var(--ui-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ACCIONES */
+  .actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .actions.show { opacity: 1; }
+
+  .action-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--ui-border);
+    background: transparent;
+    color: var(--ui-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .action-btn:hover { border-color: var(--c3); color: var(--c3); }
+  .action-btn.primary {
+    background: var(--ui-panel);
+    border-color: var(--c2);
+  }
+
+  /* DESCRIPCIÓN */
+  .desc-box {
+    margin-top: 16px;
+    max-width: 600px;
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--ui-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ui-muted);
+    display: none;
+  }
+  .desc-box.show { display: block; }
+
+  /* RESPONSIVE MOBILE */
+  @media (max-width: 640px) {
+    .layout { grid-template-columns: 1fr; }
+    .panel { border-right: none; border-bottom: 1px solid var(--ui-border); }
+    .main { padding: 20px 16px; }
+    .canvas-wrap { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">ACAS</div>
+    <div class="logo-sub">Paleta · Arte Generativo</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- PANEL IZQUIERDO -->
+  <aside class="panel">
+
+    <div>
+      <div class="panel-title">Tu paleta de 6 colores</div>
+      <br>
+      <div class="colors-grid">
+        <div class="color-item">
+          <div class="color-label">Fondo principal</div>
+          <div class="color-row">
+            <div class="color-swatch" id="sw1" style="background:#C9A882" onclick="openPicker(1)"></div>
+            <input type="color" id="cp1" value="#C9A882" oninput="updateColor(1,this.value)">
+            <input class="color-hex" id="hx1" value="#C9A882" onchange="updateFromHex(1,this.value)" maxlength="7">
+          </div>
+        </div>
+        <div class="color-item">
+          <div class="color-label">Fondo secundario</div>
+          <div class="color-row">
+            <div class="color-swatch" id="sw2" style="background:#8A8070" onclick="openPicker(2)"></div>
+            <input type="color" id="cp2" value="#8A8070" oninput="updateColor(2,this.value)">
+            <input class="color-hex" id="hx2" value="#8A8070" onchange="updateFromHex(2,this.value)" maxlength="7">
+          </div>
+        </div>
+        <div class="color-item">
+          <div class="color-label">Acento principal</div>
+          <div class="color-row">
+            <div class="color-swatch" id="sw3" style="background:#D4AF50" onclick="openPicker(3)"></div>
+            <input type="color" id="cp3" value="#D4AF50" oninput="updateColor(3,this.value)">
+            <input class="color-hex" id="hx3" value="#D4AF50" onchange="updateFromHex(3,this.value)" maxlength="7">
+          </div>
+        </div>
+        <div class="color-item">
+          <div class="color-label">Acento secundario</div>
+          <div class="color-row">
+            <div class="color-swatch" id="sw4" style="background:#A0522D" onclick="openPicker(4)"></div>
+            <input type="color" id="cp4" value="#A0522D" oninput="updateColor(4,this.value)">
+            <input class="color-hex" id="hx4" value="#A0522D" onchange="updateFromHex(4,this.value)" maxlength="7">
+          </div>
+        </div>
+        <div class="color-item">
+          <div class="color-label">Texto principal</div>
+          <div class="color-row">
+            <div class="color-swatch" id="sw5" style="background:#E8D5B8" onclick="openPicker(5)"></div>
+            <input type="color" id="cp5" value="#E8D5B8" oninput="updateColor(5,this.value)">
+            <input class="color-hex" id="hx5" value="#E8D5B8" onchange="updateFromHex(5,this.value)" maxlength="7">
+          </div>
+        </div>
+        <div class="color-item">
+          <div class="color-label">Texto muteado</div>
+          <div class="color-row">
+            <div class="color-swatch" id="sw6" style="background:#5C5448" onclick="openPicker(6)"></div>
+            <input type="color" id="cp6" value="#5C5448" oninput="updateColor(6,this.value)">
+            <input class="color-hex" id="hx6" value="#5C5448" onchange="updateFromHex(6,this.value)" maxlength="7">
+          </div>
+        </div>
+      </div>
+
+      <br>
+      <div class="preview-strip" id="strip">
+        <div style="background:#C9A882"></div>
+        <div style="background:#8A8070"></div>
+        <div style="background:#D4AF50"></div>
+        <div style="background:#A0522D"></div>
+        <div style="background:#E8D5B8"></div>
+        <div style="background:#5C5448"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="styles-title">Estilo de imagen</div>
+      <div class="styles-grid">
+        <button class="style-btn active" data-style="abstracto" onclick="selectStyle(this)">✦ Abstracto</button>
+        <button class="style-btn" data-style="mandala" onclick="selectStyle(this)">◎ Mandala</button>
+        <button class="style-btn" data-style="paisaje" onclick="selectStyle(this)">▲ Paisaje</button>
+        <button class="style-btn" data-style="floral" onclick="selectStyle(this)">✿ Floral</button>
+        <button class="style-btn" data-style="geometrico" onclick="selectStyle(this)">◈ Geométrico</button>
+        <button class="style-btn" data-style="sorpresa" onclick="selectStyle(this)">✧ Sorpresa</button>
+      </div>
+    </div>
+
+    <button class="btn-generar" id="btn-gen" onclick="generarImagen()">
+      ✦ GENERAR ARTE
+    </button>
+
+  </aside>
+
+  <!-- ÁREA PRINCIPAL -->
+  <main class="main">
+
+    <div class="canvas-wrap" id="canvas-wrap">
+
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">◈</div>
+        <div class="empty-text">Elige tu paleta y genera arte</div>
+      </div>
+
+      <svg id="svg-canvas" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg"></svg>
+
+      <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Creando tu arte...</div>
+      </div>
+
+    </div>
+
+    <div class="actions" id="actions">
+      <button class="action-btn primary" onclick="generarImagen()">↺ Nueva variación</button>
+      <button class="action-btn" onclick="descargarSVG()">↓ Descargar SVG</button>
+      <button class="action-btn" onclick="copiarSVG()">⎘ Copiar SVG</button>
+    </div>
+
+    <div class="desc-box" id="desc-box"></div>
+
+  </main>
+</div>
+
+<script>
+// ── ESTADO ──────────────────────────────────────────────
+const colors = ['#C9A882','#8A8070','#D4AF50','#A0522D','#E8D5B8','#5C5448'];
+let estiloActivo = 'abstracto';
+let svgActual = '';
+
+// ── COLORES ──────────────────────────────────────────────
+function openPicker(n) {
+  const cp = document.getElementById('cp'+n);
+  cp.click();
+}
+
+function updateColor(n, val) {
+  colors[n-1] = val;
+  document.getElementById('sw'+n).style.background = val;
+  document.getElementById('hx'+n).value = val;
+  actualizarStrip();
+}
+
+function updateFromHex(n, val) {
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+    colors[n-1] = val;
+    document.getElementById('sw'+n).style.background = val;
+    document.getElementById('cp'+n).value = val;
+    actualizarStrip();
+  }
+}
+
+function actualizarStrip() {
+  const strip = document.getElementById('strip');
+  const divs = strip.querySelectorAll('div');
+  divs.forEach((d,i) => d.style.background = colors[i]);
+}
+
+// ── ESTILOS ──────────────────────────────────────────────
+function selectStyle(btn) {
+  document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  estiloActivo = btn.dataset.style;
+}
+
+// ── GENERAR ──────────────────────────────────────────────
+async function generarImagen() {
+  const btn = document.getElementById('btn-gen');
+  const loading = document.getElementById('loading');
+  const emptyState = document.getElementById('empty-state');
+  const actions = document.getElementById('actions');
+  const descBox = document.getElementById('desc-box');
+  const wrap = document.getElementById('canvas-wrap');
+
+  btn.disabled = true;
+  loading.classList.add('show');
+  emptyState.style.display = 'none';
+
+  const [c1,c2,c3,c4,c5,c6] = colors;
+
+  const prompt = `Eres un artista SVG de élite. Crea una imagen SVG de 600x600 pixels que sea fantástica, cautivadora y visualmente impactante usando EXACTAMENTE estos 6 colores y ningún otro:
+- Color 1 (fondo principal): ${c1}
+- Color 2 (fondo secundario): ${c2}
+- Color 3 (acento principal): ${c3}
+- Color 4 (acento secundario): ${c4}
+- Color 5 (texto/luz): ${c5}
+- Color 6 (sombra/profundidad): ${c6}
+
+Estilo requerido: ${estiloActivo}
+
+REGLAS ABSOLUTAS:
+1. Devuelve SOLO el contenido interno del SVG (sin la etiqueta <svg> ni </svg> exterior, empieza directamente con <defs> o la primera forma).
+2. Usa los 6 colores exactos, todos ellos presentes.
+3. La imagen debe ser rica en detalle, con capas, gradientes usando esos colores, formas complejas.
+4. Usa <defs> con gradientes y filtros que combinen esos colores.
+5. Al final incluye un comentario HTML: <!-- DESCRIPCION: [una frase poética de lo que representa la imagen] -->
+6. NADA de texto explicativo. Solo SVG puro.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const rawText = data.content.map(b => b.text || '').join('');
+
+    // Extraer SVG: limpiar posibles etiquetas svg externas
+    let svgContent = rawText
+      .replace(/```[\w]*\n?/g, '')
+      .replace(/```/g, '')
+      .replace(/<\/?svg[^>]*>/gi, '')
+      .trim();
+
+    // Extraer descripción
+    const descMatch = svgContent.match(/<!--\s*DESCRIPCION:\s*([^-]+)\s*-->/i);
+    const descripcion = descMatch ? descMatch[1].trim() : '';
+
+    // Montar en el canvas
+    const svgEl = document.getElementById('svg-canvas');
+    svgEl.innerHTML = svgContent;
+    svgActual = svgContent;
+
+    // Efectos UI
+    wrap.classList.add('glow');
+    actions.classList.add('show');
+
+    if (descripcion) {
+      descBox.textContent = '✦ ' + descripcion;
+      descBox.classList.add('show');
+    }
+
+  } catch (err) {
+    console.error(err);
+    // Fallback: imagen local con los colores
+    generarFallback();
+  } finally {
+    loading.classList.remove('show');
+    btn.disabled = false;
+  }
+}
+
+// ── FALLBACK LOCAL ──────────────────────────────────────
+function generarFallback() {
+  const [c1,c2,c3,c4,c5,c6] = colors;
+  const svgContent = `
+  <defs>
+    <radialGradient id="fg1" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="${c5}" stop-opacity="1"/>
+      <stop offset="50%" stop-color="${c1}" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="${c6}" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="fg2" cx="70%" cy="60%" r="50%">
+      <stop offset="0%" stop-color="${c3}" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="${c4}" stop-opacity="0.2"/>
+    </radialGradient>
+    <filter id="blur1"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="blur2"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#fg1)"/>
+  <circle cx="300" cy="300" r="280" fill="${c2}" opacity="0.3" filter="url(#blur1)"/>
+  <circle cx="420" cy="200" r="180" fill="url(#fg2)" filter="url(#blur1)"/>
+  <circle cx="180" cy="420" r="150" fill="${c4}" opacity="0.35" filter="url(#blur1)"/>
+  <polygon points="300,80 520,480 80,480" fill="${c3}" opacity="0.18" filter="url(#blur2)"/>
+  <circle cx="300" cy="300" r="160" fill="none" stroke="${c3}" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="300" cy="300" r="120" fill="none" stroke="${c5}" stroke-width="0.8" opacity="0.4"/>
+  <circle cx="300" cy="300" r="220" fill="none" stroke="${c4}" stroke-width="1" stroke-dasharray="12 8" opacity="0.5"/>
+  <circle cx="300" cy="300" r="50" fill="${c3}" opacity="0.9"/>
+  <circle cx="300" cy="300" r="30" fill="${c5}" opacity="0.95"/>
+  `;
+
+  const svgEl = document.getElementById('svg-canvas');
+  svgEl.innerHTML = svgContent;
+  svgActual = svgContent;
+
+  document.getElementById('canvas-wrap').classList.add('glow');
+  document.getElementById('actions').classList.add('show');
+}
+
+// ── DESCARGAR ──────────────────────────────────────────
+function descargarSVG() {
+  const [c1,c2,c3,c4,c5,c6] = colors;
+  const full = `<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" width="600" height="600">\n${svgActual}\n</svg>`;
+  const blob = new Blob([full], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'acas-arte-paleta.svg';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copiarSVG() {
+  const full = `<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">\n${svgActual}\n</svg>`;
+  navigator.clipboard.writeText(full).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+</script>
+</body>
+</html>
